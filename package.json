@@ -1,0 +1,29 @@
+{
+  "name": "msp",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vi-kon/multiwii-node-msp"
+  },
+  "keywords": [
+    "multiwii",
+    "msp"
+  ],
+  "author": "Kovacs Vince",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vi-kon/multiwii-node-msp/issues"
+  },
+  "dependencies": {
+    "fibers": "~1.0.5",
+    "util": "~0.10.3",
+    "events": "~1.0.2",
+    "net": "~1.0.2",
+    "serialport": "~1.4.10"
+  }
+}
