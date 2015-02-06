@@ -2,7 +2,9 @@ var Util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var Net = require('net');
 var Fiber = require('fibers');
+
 var TcpPackageManager = require('./TcpPackageManager');
+var Device = require('./Device');
 
 /**
  *
