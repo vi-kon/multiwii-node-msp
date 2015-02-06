@@ -17,7 +17,7 @@ function TcpServer(port, log) {
 
     function logMsg(msg) {
         if (log) {
-            logMsg(msg);
+            console.log(msg);
         }
     }
 
