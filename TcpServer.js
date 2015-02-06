@@ -37,7 +37,16 @@ function TcpServer(port, log) {
 
             if (!self._devices.hasOwnProperty(key)) {
                 self._devices[key] = new Device();
-                self.emit('register', key);
+                /**
+                 * Register event
+                 *
+                 * Fires on first device connection
+                 *
+                 * @event TcpServer#register
+                 * @property {string} key - registered device key
+                 * @property {Device} device - device object
+                 */
+                self.emit('register', key, self._devices[key]);
             }
 
             self._devices[key].connect(packageManager);
@@ -66,7 +75,7 @@ Util.inherits(TcpServer, EventEmitter);
  *
  * Get device by name
  *
- * @param {string} key
+ * @param {string} key - device key
  * @returns {null|Device}
  */
 TcpServer.prototype.getDevice = function (key) {
@@ -86,6 +95,16 @@ TcpServer.prototype.getDevice = function (key) {
  */
 TcpServer.prototype.hasDevice = function (key) {
     return this._devices.hasOwnProperty(key);
+};
+
+/**
+ *
+ * Get list of devices
+ *
+ * @returns {object} - object with key-object pairs
+ */
+TcpServer.prototype.listDevices = function () {
+    return this._devices;
 };
 
 module.exports = TcpServer;

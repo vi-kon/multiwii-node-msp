@@ -88,6 +88,12 @@ Device.prototype.connect = function (packageManager) {
 
     Fiber(logger).run();
 
+    /**
+     * Connection established
+     *
+     * @event Device#open
+     *
+     */
     self.emit('open');
 };
 
@@ -98,6 +104,12 @@ Device.prototype.connect = function (packageManager) {
  */
 Device.prototype.disconnect = function () {
     this._packageManager = null;
+    /**
+     * Connection closed
+     *
+     * @event Device#close
+     *
+     */
     this.emit('close');
 };
 
