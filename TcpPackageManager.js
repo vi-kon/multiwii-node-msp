@@ -1,5 +1,7 @@
 var Future = require('fibers/future');
 
+var TcpProtocol = require('./TcpProtocol');
+
 /**
  *
  * @param {Socket} socket

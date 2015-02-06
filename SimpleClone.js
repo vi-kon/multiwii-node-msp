@@ -17,7 +17,7 @@ function SimpleClone(obj) {
     if (obj instanceof Array) {
         copy = [];
         for (var i = 0, len = obj.length; i < len; i++) {
-            copy[i] = clone(obj[i]);
+            copy[i] = SimpleClone(obj[i]);
         }
         return copy;
     }
@@ -27,7 +27,7 @@ function SimpleClone(obj) {
         copy = {};
         for (var attr in obj) {
             if (obj.hasOwnProperty(attr)) {
-                copy[attr] = clone(obj[attr]);
+                copy[attr] = SimpleClone(obj[attr]);
             }
         }
         return copy;
