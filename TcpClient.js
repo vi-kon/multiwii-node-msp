@@ -1,8 +1,8 @@
 var SerialPort = require('serialport').SerialPort;
 var Socket = require('net').Socket;
 
-var TcpProtocol = require('TcpProtocol');
-var MspProtocol = require('MspProtocol');
+var TcpProtocol = require('./TcpProtocol');
+var MspProtocol = require('./MspProtocol');
 
 /**
  *
