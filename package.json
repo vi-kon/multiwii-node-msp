@@ -1,6 +1,6 @@
 {
   "name": "multiwii-msp",
-  "version": "0.0.3beta-3",
+  "version": "0.0.3beta-6",
   "description": "NodeJS MultiWii Serial Protocol to send or receive commands from MultiWii via TCP/IP",
   "main": "index.js",
   "scripts": {

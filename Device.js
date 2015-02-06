@@ -51,8 +51,8 @@ Device.prototype.connect = function (packageManager) {
             status  : self.status(),
             rawImu  : self.rawImu(),
             rc      : self.rc(),
-            rawGPS  : self.rawGPS(),
-            compGPS : self.compGPS(),
+            rawGps  : self.rawGps(),
+            compGps : self.compGps(),
             attitude: self.attitude(),
             altitude: self.altitude(),
             analog  : self.analog()
@@ -69,8 +69,8 @@ Device.prototype.connect = function (packageManager) {
          * @property {int} time - actual update time in millisecond
          * @property {object} status
          * @property {object} rawImu
-         * @property {object} rawGPS
-         * @property {object} compGPS
+         * @property {object} rawGps
+         * @property {object} compGps
          * @property {object} attitude
          * @property {object} altitude
          * @property {object} analog
@@ -176,7 +176,7 @@ Device.prototype.ident = function (callback, cache) {
  * @property {boolean} sensorPresent.acc    - accelerometer present
  * @property {boolean} sensorPresent.baro   - barometer present
  * @property {boolean} sensorPresent.mag    - magnetometer present
- * @property {boolean} sensorPresent.gps    - GPS present
+ * @property {boolean} sensorPresent.gps    - Gps present
  * @property {boolean} sensorPresent.sonar  - sonar present
  * @property {Array}   boxActivation        - indicates which BOX are activates (index order is depend on boxNames)
  * @property {int}     currentSettingNumber - to indicate the current configuration settings
@@ -322,7 +322,7 @@ Device.prototype.rc = function (callback) {
     }, callback);
 };
 
-Device.prototype.rawGPS = function (callback) {
+Device.prototype.rawGps = function (callback) {
     return this._packageManager.send(106, null, function (data) {
         return {
             fix         : data.readUInt8(0) === 1,
@@ -339,7 +339,7 @@ Device.prototype.rawGPS = function (callback) {
 };
 
 
-Device.prototype.compGPS = function (callback) {
+Device.prototype.compGps = function (callback) {
     return this._packageManager.send(107, null, function (data) {
         return {
             distanceToHome : data.readUInt16LE(0),
@@ -603,7 +603,7 @@ Device.prototype.setRawRc = function (options, callback) {
     this._packageManager.send(200, data, null, callback);
 };
 
-Device.prototype.setRawGPS = function (options, callback) {
+Device.prototype.setRawGps = function (options, callback) {
     var data = new Buffer(14);
 
     data.writeUInt8(options.fix ? 1 : 0, 0);
