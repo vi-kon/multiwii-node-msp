@@ -54,9 +54,12 @@ TcpPackageManager.prototype.getNextPackageId = function () {
  *
  * @param {int} code
  * @param {Buffer} data
- * @callback onDataCallback
- * @callback [callback=null]
- * @returns {*}
+ * @param onDataCallback
+ * @param [callback]
+ *
+ * @throws sending error (if no callback provided)
+ *
+ * @returns {null|object}
  */
 TcpPackageManager.prototype.send = function (code, data, onDataCallback, callback) {
     var self, id, future;
@@ -91,6 +94,8 @@ TcpPackageManager.prototype.send = function (code, data, onDataCallback, callbac
     if (!callback) {
         return future.wait();
     }
+
+    return null;
 };
 
 module.exports = TcpPackageManager;

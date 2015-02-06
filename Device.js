@@ -4,9 +4,11 @@ var EventEmitter = require('events').EventEmitter;
 
 var SimpleClone = require('./SimpleClone');
 
+
 /**
  *
  * @constructor
+ * @extends EventEmitter
  */
 function Device() {
     this._packageManager = null;
@@ -15,8 +17,9 @@ function Device() {
 
 Util.inherits(Device, EventEmitter);
 
+
 /**
- * Check if protocol is connected to device
+ * Check if Device is connected to client
  *
  * @returns {boolean}
  */
@@ -24,10 +27,12 @@ Device.prototype.isConnected = function () {
     return this._packageManager !== null;
 };
 
+
 /**
- * Connect to device
+ * Connect Device to the client
  *
- * @param {TcpPackageManager} packageManager
+ * @param {TcpPackageManager} packageManager package manager for current connection
+ * @fires Device#update
  */
 Device.prototype.connect = function (packageManager) {
     var self, logger;
@@ -55,6 +60,21 @@ Device.prototype.connect = function (packageManager) {
         data.cycleTime = new Date().getTime() - startTime;
 
         self._log.push(data);
+
+        /**
+         * Update event
+         *
+         * @event Device#update
+         * @type {object}
+         * @property {int} time - actual update time in millisecond
+         * @property {object} status
+         * @property {object} rawImu
+         * @property {object} rawGPS
+         * @property {object} compGPS
+         * @property {object} attitude
+         * @property {object} altitude
+         * @property {object} analog
+         */
         self.emit('update', data);
 
         if (self._packageManager !== null) {
@@ -62,9 +82,9 @@ Device.prototype.connect = function (packageManager) {
         }
     };
 
-    self.ident();
-    self.boxNames();
-    self.pidNames();
+    self.ident(null, false);
+    self.boxNames(null, false);
+    self.pidNames(null, false);
 
     Fiber(logger).run();
 
@@ -72,7 +92,9 @@ Device.prototype.connect = function (packageManager) {
 };
 
 /**
- * Disconnect from device
+ * Disconnect from client
+ *
+ * @fires Device#close
  */
 Device.prototype.disconnect = function () {
     this._packageManager = null;
@@ -80,20 +102,30 @@ Device.prototype.disconnect = function () {
 };
 
 /**
+ * Ident command response callback
  *
- * Get ident
+ * @callback Device~identCallback
+ * @param {string|null}      error - error message, or null if no error
+ * @param {Device~identData} data  - response data
+ */
+
+/**
+ * Ident command response
  *
- * Data format:
- * {
-     *   version:    {int}, version of MultiWii
-     *   multiType:  {int}, type of multicopter (multitype)
-     *   mspVersion: {int}, MultiWii Serial Protocol version (not used)
-     *   capability: {int}  indicate capability of FC board
-     * }
+ * @typedef {object} Device~identData
+ * @property {int} version    - version of MultiWii
+ * @property {int} multiType  - type of multicopter (multitype)
+ * @property {int} mspVersion - MultiWii Serial Protocol version (not used)
+ * @property {int} capability - indicate capability of FC board
+ */
+
+/**
+ * Get device ident
  *
- * @callback [callback=null] callback
- * @param {boolean} [cache=true] force load ident from multicopter protocol, not from cache
- * @returns {*}
+ * @param {Device~identCallback} [callback]   - callback that handles response
+ * @param {boolean}              [cache=true] - load ident from device cache
+ *
+ * @returns {null|Device~identData} - if no callback return data, otherwise null
  */
 Device.prototype.ident = function (callback, cache) {
     if (!this._cache.hasOwnProperty('ident') || cache === false) {
@@ -115,26 +147,35 @@ Device.prototype.ident = function (callback, cache) {
 };
 
 /**
+ * Status command response callback
  *
- * Get status
+ * @callback Device~statusCallback
+ * @param {string|null}       error - error message, or null if no error
+ * @param {Device~statusData} data  - response data
+ */
+
+/**
+ * Status command response
  *
- * Data format
- * {
-     *   cycleTime:            {int}, unit: microseconds
-     *   12cErrorCount:        {int},
-     *   sensorPresent:        {      sensor present
-     *     acc:   {boolean},
-     *     baro:  {boolean},
-     *     mag:   {boolean},
-     *     gps:   {boolean},
-     *     sonar: {boolean}
-     *   },
-     *   boxActivation:        [],   indicates which BOX are activates (index order is depend on boxNames)
-     *   currentSettingNumber: {}    to indicate the current configuration settings
-     * }
+ * @typedef {object} Device~statusData
+ * @property {int}     cycleTime            - unit: microseconds
+ * @property {int}     i2cErrorCount
+ * @property {object}  sensorPresent        - sensor present
+ * @property {boolean} sensorPresent.acc    - accelerometer present
+ * @property {boolean} sensorPresent.baro   - barometer present
+ * @property {boolean} sensorPresent.mag    - magnetometer present
+ * @property {boolean} sensorPresent.gps    - GPS present
+ * @property {boolean} sensorPresent.sonar  - sonar present
+ * @property {Array}   boxActivation        - indicates which BOX are activates (index order is depend on boxNames)
+ * @property {int}     currentSettingNumber - to indicate the current configuration settings
+ */
+
+/**
+ * Get device actual status
  *
- * @callback [callback=null]
- * @returns {*}
+ * @param {Device~statusCallback} [callback] - callback that handles response
+ *
+ * @returns {null|Device~statusData} - if no callback return data, otherwise null
  */
 Device.prototype.status = function (callback) {
     var self;
@@ -170,29 +211,34 @@ Device.prototype.status = function (callback) {
 };
 
 /**
- * Get raw imu
+ * Raw imu command response callback
  *
- * Data format
- * {
-     *   gyro: {
-     *     x: {int},
-     *     y: {int},
-     *     z: {int}
-     *   },
-     *   acc:  {
-     *     x: {int},
-     *     y: {int},
-     *     z: {int}
-     *   },
-     *   mag:  {
-     *     x: {int},
-     *     y: {int},
-     *     z: {int}
-     *   }
-     * }
+ * @callback Device~rawImuCallback
+ * @param {string|null}       error - error message, or null if no error
+ * @param {Device~statusData} data  - response data
+ */
+
+/**
+ * Raw imu command response
  *
- * @callback [callback=null]
- * @returns {*}
+ * @typedef {object} Device~rawImuData
+ * @property {int} gyro.x - X axis position shift
+ * @property {int} gyro.y - Y axis position shift
+ * @property {int} gyro.z - Z axis position shift
+ * @property {int} acc.x  - X axis acceleration
+ * @property {int} acc.y  - Y axis acceleration
+ * @property {int} acc.z  - Z axis acceleration
+ * @property {int} mag.x  - X axis
+ * @property {int} mag.y  - Y axis
+ * @property {int} mag.z  - Z axis
+ */
+
+/**
+ * Get device actual status
+ *
+ * @param {Device~rawImuCallback} [callback] - callback that handles response
+ *
+ * @returns {null|Device~rawImuData} - if no callback return data, otherwise null
  */
 Device.prototype.rawImu = function (callback) {
     return this._packageManager.send(102, null, function (data) {
@@ -216,16 +262,7 @@ Device.prototype.rawImu = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get individual servo state
- *
- * Data format
- * [int,int,int,int,int,int,int,int] range: [1000,2000] - order depends on multitype
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.servo = function (callback) {
     return this._packageManager.send(103, null, function (data) {
         return [
@@ -241,16 +278,7 @@ Device.prototype.servo = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get individual motor throttle
- *
- * Data format
- * [int,int,int,int,int,int,int,int] range: [1000,2000] - order depends on multitype
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.motor = function (callback) {
     return this._packageManager.send(104, null, function (data) {
         return [
@@ -266,25 +294,7 @@ Device.prototype.motor = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get live RC data
- *
- * Data format
- * {
-     *   roll:     {int}, range: [1000,2000]
-     *   pitch:    {int}, range: [1000,2000]
-     *   yaw:      {int}, range: [1000,2000]
-     *   throttle: {int}, range: [1000,2000]
-     *   aux1:     {int}, range: [1000,2000]
-     *   aux2:     {int}, range: [1000,2000]
-     *   aux3:     {int}, range: [1000,2000]
-     *   aux4:     {int}  range: [1000,2000]
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.rc = function (callback) {
     return this._packageManager.send(105, null, function (data) {
         return {
@@ -300,26 +310,6 @@ Device.prototype.rc = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get raw GPS data
- *
- * Data format
- * {
-     *   fix:          {boolean},
-     *   numSat:       {int},
-     *   coord:        {
-     *     latitude:  {int},      unit: deg
-     *     longitude: {int},      unit: deg
-     *     altitude:  {int}       unit: m
-     *   },
-     *   speed:        {int},     unit: cm/s
-     *   groundCourse: {int}      unit: deg
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
 Device.prototype.rawGPS = function (callback) {
     return this._packageManager.send(106, null, function (data) {
         return {
@@ -336,20 +326,7 @@ Device.prototype.rawGPS = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get computed GPS data
- *
- * Data format
- * {
-     *   distanceToHome:  {int}, unit: m
-     *   directionToHome: {int}, unit: deg - range: [-180,180]
-     *   update:          {int}  flag to indicate when a new GPS frame received
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.compGPS = function (callback) {
     return this._packageManager.send(107, null, function (data) {
         return {
@@ -360,20 +337,7 @@ Device.prototype.compGPS = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get attitude
- *
- * Data format
- * {
-     *   x:       {int}, unit: deg - range: [-1800-1800]
-     *   y:       {int}, unit: deg - range: [-900-900]
-     *   heading: {int}  range: [-180,180]
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.attitude = function (callback) {
     return this._packageManager.send(108, null, function (data) {
         return {
@@ -384,19 +348,7 @@ Device.prototype.attitude = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get altitude
- *
- * Data format
- * {
-     *   estimated: {int} unit: cm
-     *   vario:     {int} unit: cm/s
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.altitude = function (callback) {
     return this._packageManager.send(109, null, function (data) {
         return {
@@ -406,20 +358,7 @@ Device.prototype.altitude = function (callback) {
     }, callback);
 };
 
-/**
- * Get analog
- *
- * Data format
- * {
-     *   vbat:             {int}, unit: volt
-     *   intPowerMeterSum: {int},
-     *   rssi:             {int}, range: [0,1023]
-     *   amperage:         {int}
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.analog = function (callback) {
     return this._packageManager.send(110, null, function (data) {
         return {
@@ -431,24 +370,7 @@ Device.prototype.analog = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get RC tuning
- *
- * Data format
- * {
-     *   rcRate:         {int}, range: [0,100]
-     *   rcExpo:         {int}, range: [0,100]
-     *   rollPitchRate:  {int}, range: [0,100]
-     *   yawRate:        {int}, range: [0,100]
-     *   dynThrottlePID: {int}, range: [0,100]
-     *   throttleMid:    {int}, range: [0,100]
-     *   throttleExpo:   {int}  range: [0,100]
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.rcTuning = function (callback) {
     return this._packageManager.send(111, null, function (data) {
         return {
@@ -463,67 +385,6 @@ Device.prototype.rcTuning = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get PID settings
- *
- * Data format
- * {
-     *   roll:     {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   pitch:    {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   yaw:      {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   altitude: {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   pos:      {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   posr:     {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   navr:     {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   level:    {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   mag:      {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   },
-     *   vel:      {
-     *     p: {int},
-     *     i: {int},
-     *     d: {int}
-     *   }
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
 Device.prototype.pid = function (callback) {
     return this._packageManager.send(112, null, function (data) {
         return {
@@ -593,37 +454,7 @@ Device.prototype.box = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get misc
- *
- * Data format
- * {
-     *   intPowerTrigger: {int}
-     *   conf:            {
-     *     minThrottle:      {int}, range: [1000,2000] - minimum throttle to run motor in idle state
-     *     maxThrottle:      {int}, range: [1000,2000] - maximum throttle
-     *     minCommand:       {int}, range: [1000,2000] - throttle at lowest position
-     *     failSafeThrottle: {int}, range: [1000,2000] - should be set less than hover state
-     *     magDeclination:   {int}, unit: deg - magnetic declination
-     *     vbat: {
-     *       scale: {int},
-     *       level: {
-     *         warn1:    {int},     unit: volt
-     *         warn2:    {int},     unit: volt
-     *         critical: {int}      unit: volt
-     *       }
-     *     },
-     *     plog: {
-     *       arm:      {int},       counter
-     *       lifetime: {int}
-     *     }
-     *   }
-     * }
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.misc = function (callback) {
     return this._packageManager.send(114, null, function (data) {
         return {
@@ -651,15 +482,7 @@ Device.prototype.misc = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get motor pin indicator
- *
- * [int,int,int,int,int,int,int,int]
- *
- * @callback [callback=null]
- * @returns {*}
- */
+
 Device.prototype.motorPins = function (callback) {
     return this._packageManager.send(115, null, function (data) {
         return [
@@ -675,16 +498,7 @@ Device.prototype.motorPins = function (callback) {
     }, callback);
 };
 
-/**
- *
- * Get box names
- *
- * [string,string,string,string,string,string,string,string] - box names
- *
- * @callback [callback=null]
- * @param [cache=true] force load box names from multicopter protocol, not from cache
- * @returns {*}
- */
+
 Device.prototype.boxNames = function (callback, cache) {
     if (!this._cache.hasOwnProperty('boxNames') || cache === false) {
         this._cache.boxNames = this._packageManager.send(116, null, function (data) {
