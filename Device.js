@@ -44,49 +44,49 @@ Device.prototype.connect = function (packageManager) {
     logger = function () {
         var startTime, data;
 
-        startTime = new Date().getTime();
+        while (self._packageManager !== null) {
+            startTime = new Date().getTime();
 
-        data = {
-            time    : new Date().getTime(),
-            status  : self.status(),
-            rawImu  : self.rawImu(),
-            rc      : self.rc(),
-            rawGps  : self.rawGps(),
-            compGps : self.compGps(),
-            attitude: self.attitude(),
-            altitude: self.altitude(),
-            analog  : self.analog()
-        };
-        data.cycleTime = new Date().getTime() - startTime;
+            data = {
+                time    : new Date().getTime(),
+                status  : self.status(),
+                rawImu  : self.rawImu(),
+                rc      : self.rc(),
+                rawGps  : self.rawGps(),
+                compGps : self.compGps(),
+                attitude: self.attitude(),
+                altitude: self.altitude(),
+                analog  : self.analog()
+            };
+            data.cycleTime = new Date().getTime() - startTime;
 
-        self._log.push(data);
+            self._log.push(data);
 
-        /**
-         * Update event
-         *
-         * @event Device#update
-         * @type {object}
-         * @property {int} time - actual update time in millisecond
-         * @property {object} status
-         * @property {object} rawImu
-         * @property {object} rawGps
-         * @property {object} compGps
-         * @property {object} attitude
-         * @property {object} altitude
-         * @property {object} analog
-         */
-        self.emit('update', data);
-
-        if (self._packageManager !== null) {
-            logger();
+            /**
+             * Update event
+             *
+             * @event Device#update
+             * @type {object}
+             * @property {int} time - actual update time in millisecond
+             * @property {object} status
+             * @property {object} rawImu
+             * @property {object} rawGps
+             * @property {object} compGps
+             * @property {object} attitude
+             * @property {object} altitude
+             * @property {object} analog
+             */
+            self.emit('update', data);
         }
     };
 
-    self.ident(null, false);
-    self.boxNames(null, false);
-    self.pidNames(null, false);
+    Fiber(function () {
+        self.ident(null, false);
+        self.boxNames(null, false);
+        self.pidNames(null, false);
 
-    Fiber(logger).run();
+        logger();
+    }).run();
 
     /**
      * Connection established

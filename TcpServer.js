@@ -25,39 +25,37 @@ function TcpServer(port, log) {
 
     this._devices = {};
     this.server = Net.createServer(function (socket) {
-        Fiber(function () {
-            var packageManager, address, key;
+        var packageManager, address, key;
 
-            logMsg('SERVER: Client connecting...');
+        logMsg('SERVER: Client connecting...');
 
-            packageManager = new TcpPackageManager(socket);
+        packageManager = new TcpPackageManager(socket);
 
-            address = socket.address();
-            key = address.address + ':' + address.port;
+        address = socket.address();
+        key = address.address + ':' + address.port;
 
-            if (!self._devices.hasOwnProperty(key)) {
-                self._devices[key] = new Device();
-                /**
-                 * Register event
-                 *
-                 * Fires on first device connection
-                 *
-                 * @event TcpServer#register
-                 * @property {string} key - registered device key
-                 * @property {Device} device - device object
-                 */
-                self.emit('register', key, self._devices[key]);
-            }
+        if (!self._devices.hasOwnProperty(key)) {
+            self._devices[key] = new Device();
+            /**
+             * Register event
+             *
+             * Fires on first device connection
+             *
+             * @event TcpServer#register
+             * @property {string} key - registered device key
+             * @property {Device} device - device object
+             */
+            self.emit('register', key, self._devices[key]);
+        }
 
-            self._devices[key].connect(packageManager);
+        self._devices[key].connect(packageManager);
 
-            socket.on('close', function () {
-                self._devices[key].disconnect();
-                logMsg('SERVER: Client disconnected');
-            });
+        socket.on('close', function () {
+            self._devices[key].disconnect();
+            logMsg('SERVER: Client disconnected');
+        });
 
-            logMsg('SERVER: Client connected');
-        }).run();
+        logMsg('SERVER: Client connected');
     });
 
     this.server.on('error', function (error) {
