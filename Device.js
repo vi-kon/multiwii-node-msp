@@ -390,7 +390,7 @@ Device.prototype.rcTuning = function (callback) {
             rcExpo        : data.readUInt8(1),
             rollPitchRate : data.readUInt8(2),
             yawRate       : data.readUInt8(3),
-            dynThrottlePID: data.readUInt8(4),
+            dynThrottlePId: data.readUInt8(4),
             throttleMid   : data.readUInt8(5),
             throttleExpo  : data.readUInt8(6)
         };
@@ -557,16 +557,16 @@ Device.prototype.wp = function (callback) {
     }, callback);
 };
 
-Device.prototype.boxIDs = function (callback) {
+Device.prototype.boxIds = function (callback) {
     return this._packageManager.send(119, null, function (data) {
-        var i, boxIDs;
+        var i, boxIds;
 
-        boxIDs = [];
+        boxIds = [];
         for (i = 0; i < data.length; i = i + 1) {
-            boxIDs[boxIDs.length] = data.readInt8(i);
+            boxIds[boxIds.length] = data.readInt8(i);
         }
 
-        return boxIDs;
+        return boxIds;
     }, callback);
 };
 
@@ -616,7 +616,7 @@ Device.prototype.setRawGps = function (options, callback) {
     this._packageManager.send(201, data, null, callback);
 };
 
-Device.prototype.setPID = function (options, callback) {
+Device.prototype.setPId = function (options, callback) {
     var data = new Buffer(30);
 
     data.writeUInt8(options.roll.p, 0);
@@ -681,7 +681,7 @@ Device.prototype.setRCTuning = function (options, callback) {
     data.writeUInt8(options.rcExpo, 1);
     data.writeUInt8(options.rollPitchRate, 2);
     data.writeUInt8(options.yawRate, 3);
-    data.writeUInt8(options.dynThrottlePID, 4);
+    data.writeUInt8(options.dynThrottlePId, 4);
     data.writeUInt8(options.throttleMid, 5);
     data.writeUInt8(options.throttleExpo, 6);
 
