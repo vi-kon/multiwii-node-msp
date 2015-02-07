@@ -44,20 +44,23 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
     spProtocol = new MspProtocol();
 
     tp.on('close', function () {
-        logMsg('Reconnecting...');
+        logMsg('CLIENT: Tcp reconnecting...');
         tp.connect(tcpPort, tcpHost, function () {
-            logMsg('Reconnected');
+            logMsg('CLIENT: Tcp reconnected');
         });
     });
 
     tp.on('error', function (error) {
-        logMsg('Error: ' + error);
+        logMsg('CLIENT: Tcp error: ' + error);
     });
 
-    logMsg('Connecting...');
+    logMsg('CLIENT: Tcp connecting...');
     tp.connect(tcpPort, tcpHost, function () {
         sp.on('data', function (data) {
             var result;
+
+            logMsg('CLIENT: Sp data received ', data);
+
             result = spProtocol.unserialize(data);
             if (result.valid) {
                 clearTimeout(processTimeout);
@@ -65,12 +68,14 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
                 processQueue();
             }
         });
-        logMsg('TCP: Connected');
+        logMsg('CLIENT: Tcp connected');
     });
 
     tp.on('data', function (data) {
         var result;
-        logMsg('TCP: Received ', data);
+
+        logMsg('CLIENT: Tcp data received ', data);
+
         result = tpProtocol.unserialize(data);
         if (result.valid) {
             queue.push({
@@ -84,7 +89,7 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
             }
         }
     });
-    console.log('SP: Connected');
+    logMsg('CLIENT: Sp connected');
 }
 
 module.exports = TcpClient;
