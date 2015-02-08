@@ -5,8 +5,8 @@
  * @module multiwii-msp
  */
 
-var TcpServer = require('./TcpServer');
-var TcpClient = require('./TcpClient');
+var TcpServer = require('./lib/TcpServer');
+var TcpClient = require('./lib/TcpClient');
 
 module.exports = {
     TcpServer: TcpServer,
