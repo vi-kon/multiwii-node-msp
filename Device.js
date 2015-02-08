@@ -1,4 +1,3 @@
-var Fiber = require('fibers');
 var Util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
@@ -80,13 +79,11 @@ Device.prototype.connect = function (packageManager) {
         }
     };
 
-    Fiber(function () {
-        self.ident(null, false);
-        self.boxNames(null, false);
-        self.pidNames(null, false);
+    self.ident(null, false);
+    self.boxNames(null, false);
+    self.pidNames(null, false);
 
-        logger();
-    }).run();
+    logger();
 
     /**
      * Connection established

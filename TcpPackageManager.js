@@ -1,4 +1,4 @@
-var Future = require('fibers/future');
+var deasync = require('deasync');
 
 var TcpProtocol = require('./TcpProtocol');
 
@@ -56,48 +56,50 @@ TcpPackageManager.prototype.getNextPackageId = function () {
  *
  * @param {int} code
  * @param {Buffer} data
- * @param onDataCallback
+ * @param dataCallback
  * @param [callback]
  *
  * @throws sending error (if no callback provided)
  *
  * @returns {null|object}
  */
-TcpPackageManager.prototype.send = function (code, data, onDataCallback, callback) {
-    var self, id, future;
+TcpPackageManager.prototype.aSyncSend = function (code, data, dataCallback, callback) {
+    var self, id;
 
     self = this;
     id = self.getNextPackageId();
-    future = new Future();
+
     self._packages[id] = {
         callback: function (error, data) {
-            data = onDataCallback ? onDataCallback(data) : null;
-            if (callback) {
-                callback(null, data);
-            } else {
-                future.return(data);
+            if (error) {
+                callback(error);
             }
+            callback(null, dataCallback ? dataCallback(data) : null);
         },
         timeout : setTimeout(function () {
-            var error;
-
-            error = 'Package timeout reach (#' + id + '/' + code + ')';
-            if (callback) {
-                callback(error);
-            } else {
-                future.throw(error);
-            }
+            callback('Package timeout reach (#' + id + '/' + code + ')');
             delete self._packages[id];
         }, 5000)
     };
 
     self._socket.write(this._tcpProtocol.serialize(id, code, data));
+};
 
+TcpPackageManager.prototype.syncSend = function (code, data, dataCallback) {
+    var self;
+
+    self = this;
+    return deasync(function (code, data, dataCallback, callback) {
+        self.aSyncSend(code, data, dataCallback, callback);
+    })(code, data, dataCallback);
+};
+
+TcpPackageManager.prototype.send = function (code, data, dataCallback, callback) {
     if (!callback) {
-        return future.wait();
+        return this.syncSend(code, data, dataCallback);
     }
 
-    return null;
+    this.aSyncSend(code, data, dataCallback, callback);
 };
 
 module.exports = TcpPackageManager;

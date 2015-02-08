@@ -4,10 +4,10 @@ This package is for [MultiWii](http://www.multiwii.com/) multicopters to communi
 
 ## Features
 
-* Communication over TCP protocol
-* Support async and sync command calls
-* Command queue on client side
-* Priority command (comming)
+* Communication over **TCP protocol**
+* Support **async** and **sync** command calls
+* **Command queue** on client side
+* **Priority command** (comming)
 
 ## Installation
 
