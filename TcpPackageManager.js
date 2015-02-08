@@ -20,11 +20,13 @@ function TcpPackageManager(socket) {
         var result;
 
         result = self._tcpProtocol.unserialize(data);
-
-        if (result.valid && self._packages.hasOwnProperty(result.id)) {
-            clearTimeout(self._packages[result.id].timeout);
-            self._packages[result.id].callback(null, result.data);
-            delete self._packages[result.id];
+        while (result.valid) {
+            if (self._packages.hasOwnProperty(result.id)) {
+                clearTimeout(self._packages[result.id].timeout);
+                self._packages[result.id].callback(null, result.data);
+                delete self._packages[result.id];
+            }
+            result = self._tcpProtocol.unserialize();
         }
     });
 }
@@ -63,7 +65,7 @@ TcpPackageManager.prototype.getNextPackageId = function () {
  *
  * @returns {null|object}
  */
-TcpPackageManager.prototype.aSyncSend = function (code, data, dataCallback, callback) {
+TcpPackageManager.prototype.asyncSend = function (code, data, dataCallback, callback) {
     var self, id;
 
     self = this;
@@ -90,7 +92,7 @@ TcpPackageManager.prototype.syncSend = function (code, data, dataCallback) {
 
     self = this;
     return deasync(function (code, data, dataCallback, callback) {
-        self.aSyncSend(code, data, dataCallback, callback);
+        self.asyncSend(code, data, dataCallback, callback);
     })(code, data, dataCallback);
 };
 
@@ -99,7 +101,7 @@ TcpPackageManager.prototype.send = function (code, data, dataCallback, callback)
         return this.syncSend(code, data, dataCallback);
     }
 
-    this.aSyncSend(code, data, dataCallback, callback);
+    this.asyncSend(code, data, dataCallback, callback);
 };
 
 module.exports = TcpPackageManager;
