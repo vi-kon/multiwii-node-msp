@@ -58,15 +58,20 @@ TcpProtocol.prototype.serialize = function (id, code, data) {
 };
 
 /**
+ * Buffer from attribute is stored in data array
+ * Method unserialize first valid package from data array
+ * The valid package bits or invalid bits are removed from data array
  *
- * @param {Buffer} data
- * @returns {{valid: boolean, error:string}|{valid: boolean, id: int, code: int, length: int, data: Buffer}}
+ * @param {Buffer} [data]
+ * @returns {{valid: boolean}|{valid: boolean, id: int, code: int, length: int, data: Buffer}}
  */
 TcpProtocol.prototype.unserialize = function (data) {
-    var i, length, id, code, crc, offset, valid, error, response;
+    var i, length, id, code, crc, offset, valid, response;
 
-    for (i = 0; i < data.length; i = i + 1) {
-        this._data[this._data.length] = data.readUInt8(i);
+    if (data) {
+        for (i = 0; i < data.length; i = i + 1) {
+            this._data[this._data.length] = data.readUInt8(i);
+        }
     }
 
     valid = false;
@@ -74,16 +79,12 @@ TcpProtocol.prototype.unserialize = function (data) {
     while (offset < this._data.length) {
         if (this._data[offset] !== 36) {
             offset = offset + 1;
-            error = 'No beginning "$" char';
         } else if (this._data[offset + 1] !== 77) {
             offset = offset + 2;
-            error = 'No beginning "M" char';
         } else if (this._data[offset + 2] !== 62 && this._type === TcpProtocol.type.REQUEST) {
             offset = offset + 3;
-            error = 'No beginning ">" char';
         } else if (this._data[offset + 2] !== 60 && this._type === TcpProtocol.type.RESPONSE) {
             offset = offset + 3;
-            error = 'No beginning "<" char';
         } else if (this._data[offset + 3] <= this._data.length - 6 - offset) {
             id = this._data[offset + 4];
             code = this._data[offset + 5];
@@ -96,19 +97,17 @@ TcpProtocol.prototype.unserialize = function (data) {
 
             if (crc !== this._data[offset + 6 + length]) {
                 offset = offset + 6 + length;
-                error = 'CRC error';
+            } else {
+                data = new Buffer(length);
+                for (i = 0; i < length; i = i + 1) {
+                    data.writeUInt8(this._data[offset + 6 + i], i);
+                }
+
+                valid = true;
+                offset = offset + 6 + length + 1;
                 break;
             }
-
-            data = new Buffer(length);
-            for (i = 0; i < length; i = i + 1) {
-                data.writeUInt8(this._data[offset + 6 + i], i);
-            }
-
-            valid = true;
-            offset = offset + 6 + length + 1;
         } else {
-            error = 'Data length is less then payload length';
             break;
         }
     }
@@ -123,8 +122,6 @@ TcpProtocol.prototype.unserialize = function (data) {
         response.code = code;
         response.length = length;
         response.data = data;
-    } else {
-        response.error = error;
     }
 
     return response;
