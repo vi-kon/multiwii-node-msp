@@ -16,9 +16,9 @@ var MspProtocol = require('./MspProtocol');
 function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
     var tp, sp, tpProtocol, spProtocol, queue, current, processing, processTimeout;
 
-    function logMsg(msg) {
+    function logMsg() {
         if (log) {
-            console.log(msg);
+            console.log.apply(this, arguments);
         }
     }
 
@@ -28,9 +28,11 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
             processing = false;
             return;
         }
+        logMsg('CLIENT: Sp write data', current.id);
         sp.write(spProtocol.serialize(current.code, current.data));
 
         processTimeout = setTimeout(function () {
+            logMsg('CLIENT: Timeout reached', current.id);
             processQueue();
         }, 1000);
     }
@@ -62,10 +64,14 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
             logMsg('CLIENT: Sp data received ', data);
 
             result = spProtocol.unserialize(data);
-            if (result.valid) {
+            while (result.valid) {
+                logMsg('CLIENT: Sp package unserialized', current.id, result.code);
+
                 clearTimeout(processTimeout);
                 tp.write(tpProtocol.serialize(current.id, result.code, result.data));
                 processQueue();
+
+                result = spProtocol.unserialize();
             }
         });
         logMsg('CLIENT: Tcp connected');
@@ -77,7 +83,9 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
         logMsg('CLIENT: Tcp data received ', data);
 
         result = tpProtocol.unserialize(data);
-        if (result.valid) {
+        while (result.valid) {
+            logMsg('CLIENT: Tcp package unserialized', result.id, result.code);
+
             queue.push({
                            id  : result.id,
                            code: result.code,
@@ -87,6 +95,8 @@ function TcpClient(tcpHost, tcpPort, serialPort, serialBaudRate, log) {
                 processing = true;
                 processQueue();
             }
+
+            result = tpProtocol.unserialize();
         }
     });
     logMsg('CLIENT: Sp connected');

@@ -16,9 +16,9 @@ function TcpServer(port, log) {
 
     self = this;
 
-    function logMsg(msg) {
+    function logMsg() {
         if (log) {
-            console.log(msg);
+            console.log.apply(this, arguments);
         }
     }
 
