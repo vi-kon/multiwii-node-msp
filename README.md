@@ -1,4 +1,4 @@
-# MultiWii Serial Protocol
+# MultiWii Serial Protocol via TCP/IP
 
 This package is for [MultiWii](http://www.multiwii.com/) multicopters to communicate with [MSP protocol](multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol) over TCP/IP protocol. The package contains two public object the `TcpClient` and `TcpServer`.
 
