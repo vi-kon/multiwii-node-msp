@@ -7,7 +7,7 @@ This package is for [MultiWii](http://www.multiwii.com/) multicopters to communi
 * Communication over **TCP protocol**
 * Support **async** and **sync** command calls
 * **Command queue** on client side
-* **Priority command** (comming)
+* **Priority command**
 
 ## Installation
 
@@ -19,7 +19,7 @@ Simply use npm with the following command:
 
 ### Server
 
-The server can listen for multiple client connection. After first successful connection new `Device` instance is created. During connection server polling client for actual data (`status`, `rawImu`, `rc`, `rawGps`, `compGps`, `attitude`, `altitude` and `analog`). The polling interval is continous.
+The server can listen for multiple client connection. After first successful connection new `Device` instance is created. During connection server polling client for actual data (`status`, `rawImu`, `rc`, `rawGps`, `compGps`, `attitude`, `altitude` and `analog`). The polling interval is continuous.
 
 **Note**: Device can handle maximum 255 commands simultaneously.
 
@@ -53,7 +53,19 @@ server.on('register', function (key, device) {
 
 #### Device
 
-Device instance describe each MultiWii board. It has multiple methods that represent commands. For example `ident` command:
+Device instance describe each MultiWii board. It has multiple methods that represent commands. The command can grouped in three groups:
+
+* **getter** - The getter commands return data from flight controller. The syntax is `{command name}(options, callback)`, where `options` and `callback` are only optional parameters. 
+  * The `options` parameter is object of available options.
+  * If `callback` parameter is not set, then command will execute synchronously otherwise, will execute as async call and result will pass to the callback function. The `callback` is standard nodeJs callback `function(error, response){}`.
+
+* **setter** - The setter command send some data to the flight controller. The syntax is `{command name}(dataObject, options, callback)`, where `dataObject` is object that contains data for each command. The `dataObject` structure depends on individual command. The `options` and `callback` arguments are same as above.
+
+* **special** - The special commands no need parameters or return data from flight controller. The syntax is same as getters `{command name}(options, callback)`.
+
+In the following examples the `ident` command are used.
+
+**Sync and async command calls**
 
 ```javascript
 // Synchronous way
@@ -63,11 +75,23 @@ var ident = device.ident();
 // or
 
 // Asynchronous way
-device.ident(function (error, ident) {
+device.ident({}, function (error, ident) {
     // Do something with ident
 });
 ```
 
+**Priority call**
+
+You can call command in priority order. Queue on clients side send commands to serial port in order which are commands are in queue. The priority call put command to the beginning of queue, so command is executed nearly immediately. 
+
+```javascript
+// Send command as priority
+var ident = device.ident({
+  prior: true
+});
+```
+
+**Note**: Default command call default is normal and not primary call.
 
 
 ### Client
@@ -114,7 +138,7 @@ var server = new TcpServer(3002, true);
 
 Get device by key
 
-**Paramters**
+**Parameters**
 
 Type     | Parameter | Description
 ---------|-----------|------------------------------
@@ -134,7 +158,7 @@ var device = server.getDevice('192.168.1.1:3005');
 
 Check if device exists with key
 
-**Paramters**
+**Parameters**
 
 Type     | Parameter | Description
 ---------|-----------|------------------------------
