@@ -57,7 +57,7 @@ Device instance describe each MultiWii board. It has multiple methods that repre
 
 * **getter** - The getter commands return data from flight controller. The syntax is `{command name}(options, callback)`, where `options` and `callback` are only optional parameters. 
   * The `options` parameter is object of available options.
-  * If `callback` parameter is not set, then command will execute synchronously otherwise, will execute as async call and result will pass to the callback function. The `callback` is standard nodeJs callback `function(error, response){}`.
+  * If `callback` parameter is not set, then command will execute synchronously otherwise, will execute as async call and result will pass to the callback function. The `callback` format is standard nodeJs callback, `function(error, response){}`.
 
 * **setter** - The setter command send some data to the flight controller. The syntax is `{command name}(dataObject, options, callback)`, where `dataObject` is object that contains data for each command. The `dataObject` structure depends on individual command. The `options` and `callback` arguments are same as above.
 
@@ -91,7 +91,18 @@ var ident = device.ident({
 });
 ```
 
-**Note**: Default command call default is normal and not primary call.
+**Note**: Default command calls are put on end of the queue.
+
+**Use cache**
+
+Commands response can stored in cache. It useful for example at `boxNames`, `pidNames` or `ident` commands, where response only change if flight control was changed. If response not found in cache, then command get it from flight controller, save to cache and return as response or add to callback.
+
+```javascript
+// Get response from cache
+var ident = device.ident({
+  cache: true
+});
+```
 
 
 ### Client
