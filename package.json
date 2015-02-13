@@ -1,6 +1,6 @@
 {
   "name": "multiwii-msp",
-  "version": "0.0.3beta-38",
+  "version": "0.0.3beta-39",
   "description": "NodeJS MultiWii Serial Protocol to send or receive commands from MultiWii via TCP/IP",
   "main": "index.js",
   "scripts": {
@@ -21,8 +21,8 @@
     "url": "https://github.com/vi-kon/multiwii-node-msp/issues"
   },
   "dependencies": {
-    "deasync": "~0.0.8",
     "events": "~1.0.2",
+    "fibers": "^1.0.5",
     "net": "~1.0.2",
     "serialport": "~1.4.10",
     "util": "~0.10.3"
