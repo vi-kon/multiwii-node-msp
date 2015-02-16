@@ -4,6 +4,7 @@
   "description": "NodeJS MultiWii Serial Protocol to send or receive commands from MultiWii via TCP/IP",
   "main": "index.js",
   "scripts": {
+    "docs": "jsdoc2md lib/*.js > api.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,10 +22,10 @@
     "url": "https://github.com/vi-kon/multiwii-node-msp/issues"
   },
   "dependencies": {
-    "events": "~1.0.2",
     "fibers": "^1.0.5",
-    "net": "~1.0.2",
-    "serialport": "~1.4.10",
-    "util": "~0.10.3"
+    "serialport": "~1.4.10"
+  },
+  "devDependencies": {
+    "jsdoc-to-markdown": "^0.5.11"
   }
 }
