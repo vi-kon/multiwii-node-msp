@@ -22,8 +22,8 @@
     "url": "https://github.com/vi-kon/multiwii-node-msp/issues"
   },
   "dependencies": {
-    "fibers": "^1.0.5",
-    "serialport": "~1.4.10"
+    "fibers": "^1.0.8",
+    "serialport": "^2.0.6"
   },
   "devDependencies": {
     "jsdoc-to-markdown": "^0.5.11"
